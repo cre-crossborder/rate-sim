@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>金利上昇シミュレーター｜不動産の越境者</title>
+<meta name="description" content="投資用ワンルームの毎月の収支と売却時の手残り、住宅ローンの変動・固定を、金利が上がった場合で比べられる無料の試算ツールです。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="金利上昇シミュレーター｜不動産の越境者">
+<meta property="og:description" content="金利が上がったら、ワンルームはいくら残る？ 変動と固定はどちらが得？ 4つの数字で試算できます。">
+<meta property="og:url" content="https://cre-crossborder.github.io/rate-sim/">
+<meta property="og:image" content="https://cre-crossborder.github.io/rate-sim/og.png">
+<link rel="canonical" href="https://cre-crossborder.github.io/rate-sim/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@cre_crossborder">
+<meta name="theme-color" content="#1d2b4f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d2b4f'/%3E%3Cpath d='M7 23l6-7 5 4 7-10' stroke='%23d9a84a' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f4f5f7; --surface:#fff; --surface2:#f8f9fb; --ink:#1b2231; --muted:#5a6272; --line:#e2e5ea;
+  --brand:#1d2b4f; --brand-ink:#fff; --accent:#b8892b; --focus:#3b6fd8;
+  --red:#b93a26; --red-bg:#fcefec; --red-line:#f1cfc7;
+  --amber:#8f5d00; --amber-bg:#fff5e1; --amber-line:#f0dcae;
+  --green:#236b4c; --green-bg:#eaf6ef; --green-line:#c6e6d3;
+  --s-flat:#1d2b4f; --s-grad:#c08a1e; --s-cust:#1f8a80; --s-fix:#8a5cc7;
+  --radius:14px; --shadow:0 1px 2px rgba(20,30,50,.05),0 4px 16px rgba(20,30,50,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11141a; --surface:#191d25; --surface2:#1f242e; --ink:#e7eaf0; --muted:#9ba3b1; --line:#2c3340;
+  --brand:#4a67b0; --brand-ink:#fff; --accent:#d9a84a; --focus:#8fb0ff;
+  --red:#f08a76; --red-bg:#2b1a18; --red-line:#553029;
+  --amber:#f0c060; --amber-bg:#2a2314; --amber-line:#57461f;
+  --green:#6fd0a0; --green-bg:#14271e; --green-line:#24503a;
+  --s-flat:#9fb4ea; --s-grad:#e0ab45; --s-cust:#4cc4b8; --s-fix:#b995ec;
+  --shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#11141a; --surface:#191d25; --surface2:#1f242e; --ink:#e7eaf0; --muted:#9ba3b1; --line:#2c3340;
+  --brand:#4a67b0; --brand-ink:#fff; --accent:#d9a84a; --focus:#8fb0ff;
+  --red:#f08a76; --red-bg:#2b1a18; --red-line:#553029;
+  --amber:#f0c060; --amber-bg:#2a2314; --amber-line:#57461f;
+  --green:#6fd0a0; --green-bg:#14271e; --green-line:#24503a;
+  --s-flat:#9fb4ea; --s-grad:#e0ab45; --s-cust:#4cc4b8; --s-fix:#b995ec;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Yu Gothic",Meiryo,system-ui,sans-serif;font-size:15px;line-height:1.7;font-feature-settings:"palt" 1}
+.num,table td,table th,.big{font-variant-numeric:tabular-nums}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+.site{background:var(--surface);border-bottom:1px solid var(--line)}
+.site .wrap{display:flex;align-items:center;gap:10px;height:52px}
+.brand{font-weight:700;font-size:14px;letter-spacing:.02em;border-left:3px solid var(--accent);padding-left:10px}
+.brand small{font-weight:500;color:var(--muted);margin-left:8px}
+@media (max-width:480px){.brand small{display:none}}
+.site .x{margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none}
+.site .x:hover{color:var(--ink)}
+.hero{padding:28px 0 18px}
+.hero h1{font-size:clamp(22px,4.2vw,30px);line-height:1.4;margin:0 0 6px;letter-spacing:.01em}
+.hero p{margin:0;color:var(--muted)}
+.tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px;margin-bottom:18px}
+.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink)}
+.grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr);align-items:start}
+.grid>*{min-width:0}
+@media (min-width:920px){.grid{grid-template-columns:340px minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);min-width:0}
+.card+.card{margin-top:18px}
+.step{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin:0 0 2px}
+h2{font-size:18px;margin:0 0 4px;line-height:1.45}
+h3{font-size:16px;margin:26px 0 8px}
+.lead{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.field{margin:0 0 14px}
+.field .lab{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;margin-bottom:5px}
+.tipbtn{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface2);font-size:12px;line-height:1;cursor:pointer;color:var(--muted);padding:0;flex:none}
+.tipbtn[aria-expanded="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.tip{font-size:13px;color:var(--muted);background:var(--surface2);border-radius:8px;padding:8px 10px;margin:0 0 6px}
+.inbox{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.inbox:focus-within{border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 18%,transparent)}
+.inbox input{flex:1;min-width:0;border:0;background:transparent;padding:10px 12px;text-align:right;font-size:16px;outline:none;font-variant-numeric:tabular-nums}
+.inbox input::placeholder{color:color-mix(in srgb,var(--muted) 70%,transparent)}
+.inbox .unit{padding:0 12px 0 2px;color:var(--muted);font-size:13px;white-space:nowrap}
+.inbox .sign{border:0;border-right:1px solid var(--line);background:var(--surface2);padding:10px 10px;cursor:pointer;font-weight:700;min-width:40px}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.err{font-size:12.5px;color:var(--red);margin-top:4px;font-weight:600}
+.field.bad .inbox{border-color:var(--red)}
+select{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 12px;font-size:15px}
+.check{display:flex;gap:8px;align-items:center;font-weight:600;font-size:14px}
+.check input{width:18px;height:18px;accent-color:var(--brand)}
+details.more{border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
+details.more>summary{cursor:pointer;font-weight:700;font-size:14px;padding:8px 0;list-style:none;display:flex;align-items:center;gap:8px}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin:0 3px}
+details.more[open]>summary::before{transform:rotate(45deg)}
+.grp{font-size:13px;font-weight:700;color:var(--muted);margin:16px 0 10px;padding-bottom:4px;border-bottom:1px dashed var(--line)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:14px}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.block{width:100%}
+.only-narrow{display:block}
+@media (min-width:920px){.only-narrow{display:none}}
+#invStatus,#homeStatus{margin-bottom:18px}
+.status{border-radius:var(--radius);padding:18px 20px;border:1px solid}
+.status.red{background:var(--red-bg);border-color:var(--red-line)}
+.status.amber{background:var(--amber-bg);border-color:var(--amber-line)}
+.status.green{background:var(--green-bg);border-color:var(--green-line)}
+.status .q{font-size:12.5px;color:var(--muted);font-weight:600;margin:0}
+.status .h{font-size:20px;font-weight:800;margin:2px 0 10px;line-height:1.45}
+.status.red .h{color:var(--red)} .status.amber .h{color:var(--amber)} .status.green .h{color:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:color-mix(in srgb,var(--surface) 75%,transparent);border-radius:10px;padding:10px 12px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .v{font-size:19px;font-weight:800;line-height:1.3}
+.kpi .s{font-size:12px;color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.neg{color:var(--red)} .pos{color:var(--green)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:14px}
+.sc{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--surface2)}
+.sc.best{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sc h4{margin:0;font-size:14px}
+.sc .tag{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);margin-left:6px}
+.sc .k{font-size:12px;color:var(--muted);margin-top:6px}
+.sc .big{font-size:26px;font-weight:800;line-height:1.25}
+.sc .d{font-size:13px;font-weight:700}
+.sc .br{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;line-height:1.6}
+.sc .br div{display:flex;justify-content:space-between;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block;opacity:.35}
+.chip[aria-pressed="true"]{color:var(--ink);border-color:color-mix(in srgb,var(--ink) 35%,var(--line))}
+.chip[aria-pressed="true"] i{opacity:1}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:11px;font-family:inherit}
+.tbl{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:700;background:var(--surface2)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+th:first-child{background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+tr.hl td{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.sw{display:inline-block;width:10px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.formula{background:var(--surface2);border-radius:10px;padding:12px 14px;font-size:13.5px}
+.formula div+div{margin-top:6px}
+.aside{border-left:3px solid var(--accent);padding:10px 14px;background:var(--surface2);border-radius:0 10px 10px 0;margin-top:18px}
+.aside b{display:block;margin-bottom:2px}
+.aside p{margin:0;font-size:13.5px;color:var(--muted)}
+.empty{border:1px dashed var(--line);border-radius:12px;padding:16px;color:var(--muted);font-size:13.5px;margin-top:12px;text-align:center}
+.alert{border:1px solid var(--red-line);background:var(--red-bg);color:var(--red);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px;margin-bottom:12px}
+.share{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.share .msg{font-size:12.5px;color:var(--green);font-weight:600}
+.share input{flex:1;min-width:200px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;background:var(--surface2)}
+.list-ex{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.list-ex summary{cursor:pointer}
+.list-ex ul{margin:6px 0 0;padding-left:18px;columns:2;column-gap:20px}
+@media (max-width:560px){.list-ex ul{columns:1}}
+footer{margin:36px 0 0;padding:22px 0 40px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+footer p{margin:0 0 6px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <span class="brand">不動産の越境者<small>金利上昇シミュレーター</small></span>
+  <a class="x" href="https://x.com/cre_crossborder" target="_blank" rel="noopener">@cre_crossborder</a>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1 id="heroTitle">このワンルーム、<br>持ち続けるといくら残る？</h1>
+    <p id="heroLead">4つの数字で毎月の収支が分かります。売値を入れると、今・5年後・10年後に売った場合を比べられます。</p>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="試算するもの">
+    <button role="tab" id="tab-invest" aria-controls="panel-invest" aria-selected="true">持っているワンルーム</button>
+    <button role="tab" id="tab-home" aria-controls="panel-home" aria-selected="false" tabindex="-1">住宅ローンの比較</button>
+  </div>
+
+  <!-- ============ 投資用ワンルーム ============ -->
+  <section id="panel-invest" role="tabpanel" aria-labelledby="tab-invest">
+    <div class="grid">
+      <div class="card" id="invInputs">
+        <p class="step">STEP 1</p>
+        <h2>いまの状況を入力</h2>
+        <p class="lead">最初の数字は例です。お持ちの物件の数字に変えてください。</p>
+        <div data-fields="invBasic"></div>
+        <button class="btn primary block only-narrow" type="button" data-scroll="invResults">結果を見る</button>
+        <details class="more" id="invMore">
+          <summary>詳しく入力する</summary>
+          <p class="lead" style="margin-top:4px">空欄の項目は、薄く表示された例の値で計算します。特に「返済まであと何年」は結果への影響が大きい項目です。</p>
+          <div class="grp">ローン・毎年かかるお金</div>
+          <div data-fields="invLoan"></div>
+          <div class="grp">売るときの想定</div>
+          <div data-fields="invSale"></div>
+          <div class="grp">家賃・管理費の変化</div>
+          <div data-fields="invRent"></div>
+          <div class="grp">金利の上がり方</div>
+          <div data-fields="invRate"></div>
+          <div class="grp">購入時からの損益も見る（任意）</div>
+          <p class="lead">4項目すべてを入力したときだけ、購入時からのトータル損益を表示します。</p>
+          <div data-fields="invBuy"></div>
+        </details>
+      </div>
+
+      <div id="invResults">
+        <div class="alert" id="invAlert" role="alert" hidden></div>
+        <div id="invStatus"></div>
+
+        <div class="card">
+          <p class="step">STEP 2</p>
+          <h2>売る場合・持ち続ける場合を比べる</h2>
+          <p class="lead">査定額や、ご自身で想定する売値を入れてください。売値の自動推定はしません。</p>
+          <div data-fields="invPrice"></div>
+          <div class="field">
+            <div class="lab"><label for="invScen">持ち続ける間の金利</label></div>
+            <select id="invScen">
+              <option value="gradual">緩やかに上昇（年+0.25%）</option>
+              <option value="flat">今のまま</option>
+              <option value="custom">自分で設定</option>
+            </select>
+            <div class="hint">「緩やかに上昇」は仮の想定です。日銀の方針や将来の金利を予測するものではありません。</div>
+          </div>
+          <div id="invSale"></div>
+        </div>
+
+        <div class="card" id="invDetail">
+          <h2>毎月の収支は、どう変わる？</h2>
+          <p class="lead">家賃から経費とローン返済を引いた、各年の月平均です。売却代金は含みません。</p>
+          <div class="chips" id="invChips"></div>
+          <div id="invChart"></div>
+          <p class="note" id="invChartNote"></p>
+
+          <h3>金利の上がり方で比べる</h3>
+          <div class="tbl"><table id="invScenTbl"></table></div>
+
+          <div id="invYearWrap">
+            <h3>売る年ごとの、お金の内訳</h3>
+            <p class="lead">「今売る場合との差」が大きい年ほど、この想定では手元に残るお金が多くなります。</p>
+            <div class="tbl"><table id="invYearTbl"></table></div>
+            <h3>売るときの利回りが上がったら</h3>
+            <p class="lead" id="invYieldLead"></p>
+            <div class="tbl"><table id="invYieldTbl"></table></div>
+          </div>
+
+          <h3>毎月の収支の計算</h3>
+          <div class="formula" id="invFormula"></div>
+
+          <div class="aside">
+            <b>「毎月赤字」と「売ったときの損」は別の話です</b>
+            <p id="invAsideText">毎月の返済には、利息だけでなくローン残高を減らす元金も含まれます。毎月の持ち出しと、売った後に残るお金を合わせて判断しましょう。ここでは今日を出発点に比べており、購入以来の損益ではありません。</p>
+          </div>
+
+          <div class="share">
+            <button class="btn" type="button" data-share="invest">この条件のリンクをコピー</button>
+            <span class="msg" role="status" data-share-msg="invest"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 住宅ローン ============ -->
+  <section id="panel-home" role="tabpanel" aria-labelledby="tab-home" hidden>
+    <div class="grid">
+      <div class="card">
+        <h2>住宅ローンの条件</h2>
+        <p class="lead">変動金利と全期間固定を比べます。数字は例なので、ご自身の条件に変えてください。</p>
+        <div data-fields="homeBasic"></div>
+        <div class="field">
+          <div class="lab"><label class="check"><input type="checkbox" id="hRule" checked> 5年・125%ルールあり</label>
+            <button class="tipbtn" type="button" aria-expanded="false" data-tip="tip-rule">?</button></div>
+          <p class="tip" id="tip-rule" hidden>変動金利で、返済額を5年ごとに見直し、増額を前の1.25倍までに抑える仕組みです。月々の負担は急増しませんが利息は減らず、払い切れない利息（未払利息）は最後にまとめて払います。適用の有無は金融機関によって異なります。</p>
+        </div>
+        <button class="btn primary block only-narrow" type="button" data-scroll="homeResults">結果を見る</button>
+        <details class="more">
+          <summary>金利の上がり方を変える</summary>
+          <div data-fields="homeRate" style="margin-top:8px"></div>
+        </details>
+      </div>
+
+      <div id="homeResults">
+        <div class="alert" id="homeAlert" role="alert" hidden></div>
+        <div id="homeStatus"></div>
+        <div class="card">
+          <h2>毎月の支払いの変化</h2>
+          <p class="lead">元金と利息を合わせた各年の月々の返済額です。手数料・保険料は含みません。</p>
+          <div class="chips" id="homeChips"></div>
+          <div id="homeChart"></div>
+          <h3>月々の返済額</h3>
+          <div class="tbl"><table id="homeMonTbl"></table></div>
+          <h3>総返済額の比較</h3>
+          <div class="tbl"><table id="homeTotTbl"></table></div>
+          <p class="note" id="homeRuleNote"></p>
+          <div class="aside">
+            <b>固定金利は、将来の金利上昇への「保険料」</b>
+            <p>固定は当初の支払いが高い代わりに、金利が上がっても返済額が変わりません。変動は今の負担を抑えられますが、将来の支払いは金利の上がり方しだいです。「毎月払える上限」と「総返済額」の両方で比べてください。</p>
+          </div>
+          <div class="share">
+            <button class="btn" type="button" data-share="home">この条件のリンクをコピー</button>
+            <span class="msg" role="status" data-share-msg="home"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  <p>本ツールは試算用であり、投資助言ではありません。所得税・売却時の税金・保険料・修繕一時金・借り換え費用は考慮していません。金額は万円表示で、合計は整数、月額は小数2桁で四捨五入しています。</p>
+  <p>計算はすべてブラウザ内で行い、入力内容をサーバーに送信・保存しません。共有リンクの条件は「#」以降に入るため、サーバーには送られません。</p>
+  <p>作成：不動産の越境者（<a href="https://x.com/cre_crossborder" target="_blank" rel="noopener">@cre_crossborder</a>）</p>
+</div></footer>
+
+<script>
+(() => {
+"use strict";
+/* ---------- 入力項目の定義 ---------- */
+// k: 共有リンク用の短いキー / def: 例の値 / pre: 最初から入力しておくか
+const F = {
+  invBasic: [
+    {id:"debt", k:"d", label:"ローンの残り", unit:"万円", def:2400, pre:true, min:0, max:100000,
+     tip:"いま返済せずに残っている金額です。購入時に借りた額ではありません。", hint:"返済予定表・銀行アプリの「借入残高」"},
+    {id:"rate", k:"r", label:"今の金利", unit:"%", def:2, pre:true, min:0, max:30,
+     tip:"現在ローンに適用されている年利です。「1%上がる」とは2%が3%になることです。", hint:"金利変更のお知らせ・返済予定表"},
+    {id:"rent", k:"rt", label:"毎月の家賃", unit:"万円", def:9, pre:true, min:0, max:1000,
+     tip:"入居者から受け取る家賃です。管理費などを引く前の額を入れてください。", hint:"賃貸借契約書・管理会社の送金明細"},
+    {id:"mnt", k:"m", label:"管理費・修繕積立金など", unit:"万円/月", def:1.2, pre:true, min:0, max:1000,
+     tip:"管理費と修繕積立金の月合計です。賃貸管理手数料も毎月かかる場合は加えてください。", hint:"管理組合の請求書・送金明細"},
+  ],
+  invLoan: [
+    {id:"years", k:"y", label:"返済まであと何年", unit:"年", def:30, min:1, max:50, int:true,
+     tip:"今日から完済までの期間です。", hint:"返済予定表の「最終返済日」"},
+    {id:"tax", k:"x", label:"固定資産税・都市計画税（年間）", unit:"万円/年", def:6, min:0, max:10000,
+     tip:"年額を毎月の収支に12分の1ずつ含めます。", hint:"納税通知書の年額"},
+    {id:"vac", k:"v", label:"空室の割合", unit:"%", def:5, min:0, max:100,
+     tip:"家賃が入らない期間の年平均です。5%なら年約18日分の家賃がない想定です。", hint:"入居中でも将来の空室を見込みます"},
+  ],
+  invSale: [
+    {id:"hor", k:"h", label:"何年先まで比べる？", unit:"年", def:10, min:1, max:50, int:true,
+     tip:"1年後から指定年まで、各年末に売る場合を比べます。"},
+    {id:"sc", k:"c", label:"売るときの費用", unit:"%", def:4, min:0, max:100,
+     tip:"仲介手数料などを売値に対する割合で見込みます。税金・繰上返済手数料は含みません。"},
+    {id:"sm", k:"sm", type:"select", label:"将来の売値の決め方", def:"price",
+     opts:[["price","今の売値から毎年増減させる"],["yield","売るときの利回りから計算する"]],
+     tip:"どちらも予測ではなく、ご自身で置く想定です。利回り方式では「手元に残る家賃 ÷ 利回り」で売値を出します。"},
+    {id:"pc", k:"p", label:"売値の変化（毎年）", unit:"%", def:-1, min:-30, max:30, sign:true, show:p=>p.sm==="price",
+     tip:"今売れそうな価格を毎年同じ割合で増減させます。−1%なら毎年1%下がる想定です。"},
+    {id:"yr", k:"e", label:"売るときの利回りの上昇幅", unit:"%", def:0.5, min:0, max:20, show:p=>p.sm==="yield",
+     tip:"比較する最終年までに何%上がるか。途中は毎年均等に上がる想定です。家賃が同じなら、利回りが上がると売値は下がります。"},
+  ],
+  invRent: [
+    {id:"rg", k:"g", label:"家賃の変化（毎年）", unit:"%", def:0, min:-20, max:20, sign:true,
+     tip:"据え置き期間の後の、年ごとの増減です。"},
+    {id:"rf", k:"f", label:"家賃を据え置く期間", unit:"年", def:2, min:0, max:50, int:true,
+     tip:"この年数は家賃が変わらず、翌年から増減する想定です。", hint:"契約期間・次回更新日の目安"},
+    {id:"rc", k:"q", label:"家賃の増減の上限（今と比べて）", unit:"%", def:5, min:0, max:90,
+     tip:"毎年の変化を重ねても、この幅で止まります。5%なら今の家賃の95〜105%の範囲です。"},
+    {id:"mg", k:"n", label:"管理費・修繕積立金の上昇（毎年）", unit:"%", def:0, min:0, max:20,
+     tip:"2年目以降、毎年この割合で上がる想定です。", hint:"長期修繕計画・値上げ予定を参考に"},
+  ],
+  invRate: [
+    {id:"gcap", k:"gc", label:"「緩やかに上昇」の上限", unit:"%", def:2, min:0, max:20,
+     tip:"今の金利に上乗せする上限です。今2%・上限2%なら4%で止まります。2年目から毎年+0.25%ずつ上がります。"},
+    {id:"cst", k:"cs", label:"「自分で設定」の上昇幅（毎年）", unit:"%", def:0.5, min:0, max:20,
+     tip:"2年目から毎年何%上げるか。実際の金融機関の見直し時期とは異なります。"},
+    {id:"ccap", k:"cc", label:"「自分で設定」の上限", unit:"%", def:3, min:0, max:20,
+     tip:"今の金利からの上昇幅の上限です。今2%・上限3%なら最大5%です。"},
+  ],
+  invBuy: [
+    {id:"bp", k:"bp", label:"買ったときの物件価格", unit:"万円", min:1, max:1000000, opt:true, tip:"売買契約書の価格です。"},
+    {id:"bl", k:"bl", label:"買ったときの借入額", unit:"万円", min:0, max:1000000, opt:true, tip:"購入時に借りた額です。今のローン残高ではありません。"},
+    {id:"bc", k:"bc", label:"買ったときの諸費用", unit:"万円", min:0, max:100000, opt:true, tip:"仲介手数料・登記費用などの合計です。"},
+    {id:"bcf", k:"bf", label:"これまでの収支の合計", unit:"万円", min:-1000000, max:1000000, opt:true, sign:true,
+     tip:"購入から今日までの「家賃 − 経費 − ローン返済」の合計です。持ち出しならマイナスにします。"},
+  ],
+  invPrice: [
+    {id:"p0", k:"s", label:"今売れそうな価格", unit:"万円", min:1, max:1000000, opt:true,
+     tip:"いま売った場合の価格です。ローン残高や売る費用を引く前の金額で、購入価格とは違います。", hint:"不動産会社の査定書を参考に"},
+  ],
+  homeBasic: [
+    {id:"hp", k:"a", label:"借入額", unit:"万円", def:4000, pre:true, min:1, max:100000},
+    {id:"hy", k:"b", label:"返済期間", unit:"年", def:35, pre:true, min:1, max:50, int:true},
+    {id:"hv", k:"v", label:"変動金利（当初）", unit:"%", def:0.9, pre:true, min:0, max:30, tip:"金融機関から提示された、優遇後の適用金利です。"},
+    {id:"hf", k:"f", label:"全期間固定金利", unit:"%", def:2, pre:true, min:0, max:30, tip:"完済まで同じ金利が続く商品の金利です。"},
+  ],
+  homeRate: [
+    {id:"hgcap", k:"gc", label:"「緩やかに上昇」の上限", unit:"%", def:2, min:0, max:20, tip:"当初金利に上乗せする上限です。2年目から毎年+0.25%ずつ上がります。"},
+    {id:"hcst", k:"cs", label:"「自分で設定」の上昇幅（毎年）", unit:"%", def:0.5, min:0, max:20},
+    {id:"hccap", k:"cc", label:"「自分で設定」の上限", unit:"%", def:3, min:0, max:20},
+  ],
+};
+const GROUPS = {invest:["invBasic","invLoan","invSale","invRent","invRate","invBuy","invPrice"], home:["homeBasic","homeRate"]};
+const FIELD = {}; // id -> spec (+group)
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- 入力UIの生成 ---------- */
+function fmtInput(v){ return (v===""||v==null) ? "" : String(v); }
+function buildFields(){
+  document.querySelectorAll("[data-fields]").forEach(box => {
+    const g = box.dataset.fields;
+    box.innerHTML = F[g].map(f => {
+      FIELD[f.id] = Object.assign({group:g, tab: GROUPS.invest.includes(g) ? "invest":"home"}, f);
+      const tip = f.tip ? `<button class="tipbtn" type="button" aria-expanded="false" data-tip="tip-${f.id}" aria-label="${esc(f.label)}の説明">?</button>` : "";
+      const tipP = f.tip ? `<p class="tip" id="tip-${f.id}" hidden>${esc(f.tip)}</p>` : "";
+      if (f.type === "select") {
+        return `<div class="field" id="fw-${f.id}"><div class="lab"><label for="${f.id}">${esc(f.label)}</label>${tip}</div>${tipP}
+          <select id="${f.id}">${f.opts.map(o=>`<option value="${o[0]}">${esc(o[1])}</option>`).join("")}</select></div>`;
+      }
+      const ph = f.def!=null ? `例：${f.def}` : "未入力";
+      const sign = f.sign ? `<button class="sign" type="button" data-sign="${f.id}" aria-label="${esc(f.label)}のプラス・マイナスを切り替える">±</button>` : "";
+      return `<div class="field" id="fw-${f.id}"><div class="lab"><label for="${f.id}">${esc(f.label)}</label>${tip}</div>${tipP}
+        <div class="inbox">${sign}<input id="${f.id}" type="text" inputmode="decimal" autocomplete="off" placeholder="${ph}" value="${f.pre?fmtInput(f.def):""}"><span class="unit">${esc(f.unit)}</span></div>
+        ${f.hint?`<div class="hint">${esc(f.hint)}</div>`:""}<div class="err" id="err-${f.id}" hidden></div></div>`;
+    }).join("");
+  });
+}
+
+/* 全角数字・カンマ・各種マイナス記号を許容して数値化 */
+function parseNum(s){
+  if (s==null) return NaN;
+  s = String(s).trim().replace(/[０-９．]/g, c => String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[，,\s万円%％年]/g,"").replace(/[−－ー―‐]/g,"-").replace(/^\+/,"");
+  if (s==="" ) return NaN;
+  if (!/^-?\d*\.?\d+$/.test(s) && !/^-?\d+\.?$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+
+/* 値の取得。invalid: 範囲外・形式エラー、usedDefault: 空欄で例の値を使った項目 */
+function readGroup(tab){
+  const p = {}, used = [], bad = [];
+  GROUPS[tab].forEach(g => F[g].forEach(f => {
+    const el = document.getElementById(f.id);
+    const wrap = document.getElementById("fw-"+f.id);
+    if (f.type === "select") { p[f.id] = el.value; return; }
+    const raw = el.value.trim();
+    const errEl = document.getElementById("err-"+f.id);
+    let v = parseNum(raw), msg = "";
+    if (raw === "") {
+      if (f.opt) v = null;
+      else { v = f.def; used.push(f); }
+    } else if (isNaN(v)) msg = "数字で入力してください。";
+    else if (f.int && !Number.isInteger(v)) msg = "整数で入力してください。";
+    else if (v < f.min || v > f.max) msg = `${f.min.toLocaleString()}〜${f.max.toLocaleString()}${f.unit.replace("/月","").replace("/年","")}の範囲で入力してください。`;
+    if (msg) { bad.push(f); v = f.opt ? null : f.def; }
+    wrap.classList.toggle("bad", !!msg);
+    errEl.hidden = !msg; errEl.textContent = msg;
+    p[f.id] = v;
+  }));
+  // 表示・非表示の切り替え
+  GROUPS[tab].forEach(g => F[g].forEach(f => { if (f.show) document.getElementById("fw-"+f.id).hidden = !f.show(p); }));
+  return {p, used: used.filter(f => !f.show || f.show(p)), bad};
+}
+
+/* ---------- 書式 ---------- */
+const MINUS = "−";
+function man(v, d=0){ // 万円
+  if (v==null || !isFinite(v)) return "—";
+  const r = d ? Math.round(v*10**d)/10**d : Math.round(v);
+  const s = Math.abs(r).toLocaleString("ja-JP",{minimumFractionDigits:d, maximumFractionDigits:d});
+  return (r<0?MINUS:"") + s + "万円";
+}
+function signed(v, d=0){ const s = man(v,d); return v>0.0000001 && Math.round(v*10**d)!==0 ? "+"+s : s; }
+function pct(v, d=2){ return (Math.round(v*10**d)/10**d).toLocaleString("ja-JP",{maximumFractionDigits:d}) + "%"; }
+const cls = v => v < -0.005 ? "neg" : (v > 0.005 ? "pos" : "");
+
+/* ---------- ローン計算 ---------- */
+function pmt(bal, rAnnualPct, months){
+  if (months <= 0 || bal <= 0) return 0;
+  const i = rAnnualPct/1200;
+  return i === 0 ? bal/months : bal*i/(1-Math.pow(1+i,-months));
+}
+function rateAt(r0, scen, k, gcap, cst, ccap){
+  if (k <= 1 || scen === "flat") return r0;
+  if (scen === "gradual") return r0 + Math.min(0.25*(k-1), gcap);
+  return r0 + Math.min(cst*(k-1), ccap);
+}
+
+/* ---------- 投資用ワンルーム ---------- */
+const SCEN = ["flat","gradual","custom"];
+function scenName(s, p, short){
+  if (s==="flat") return "今のまま";
+  if (s==="gradual") return short ? "緩やかに上昇" : `緩やかに上昇（年+0.25%・上限+${pct(p.gcap)}）`;
+  return short ? "自分で設定" : `自分で設定（年+${pct(p.cst)}・上限+${pct(p.ccap)}）`;
+}
+function rentAt(p, k){ // 月額
+  if (k <= p.rf) return p.rent;
+  const f = Math.pow(1+p.rg/100, k-p.rf);
+  const lo = 1 - p.rc/100, hi = 1 + p.rc/100;
+  return p.rent * Math.min(hi, Math.max(lo, f));
+}
+function noiAt(p, k){ return rentAt(p,k)*12*(1-p.vac/100) - p.mnt*Math.pow(1+p.mg/100, k-1)*12 - p.tax; }
+
+function simInvest(p, scen, N){
+  let bal = p.debt, cum = 0; const rows = [];
+  for (let k=1; k<=N; k++){
+    const r = rateAt(p.rate, scen, k, p.gcap, p.cst, p.ccap);
+    const rem = Math.round((p.years-(k-1))*12);
+    let paid = 0, prin = 0, intr = 0;
+    if (bal > 1e-9 && rem > 0){
+      const m = pmt(bal, r, rem);
+      for (let j=0; j<12 && bal>1e-9; j++){
+        const it = bal*r/1200; let pr = m - it; if (pr > bal) pr = bal;
+        paid += it+pr; prin += pr; intr += it; bal -= pr;
+      }
+    }
+    const noi = noiAt(p,k), cf = noi - paid; cum += cf;
+    rows.push({k, r, noi, paid, prin, intr, cf, cum, bal: Math.max(0,bal)});
+  }
+  return rows;
+}
+function breakEvenRate(p){
+  const noi = noiAt(p,1), months = p.years*12;
+  if (p.debt <= 0) return {type:"nodebt"};
+  const payAt = r => pmt(p.debt, r, months)*12;
+  if (payAt(0) >= noi) return {type:"zero"};
+  if (payAt(30) <= noi) return {type:"over"};
+  let lo=0, hi=30; for (let i=0;i<60;i++){ const mid=(lo+hi)/2; (payAt(mid) > noi) ? hi=mid : lo=mid; }
+  return {type:"rate", r:(lo+hi)/2};
+}
+function salePrice(p, rows, k){
+  if (p.p0 == null) return null;
+  if (k === 0) return p.p0;
+  if (p.sm === "price") return p.p0*Math.pow(1+p.pc/100, k);
+  const y0 = noiAt(p,1)/p.p0; if (y0 <= 0) return NaN;
+  const yk = y0 + (p.yr/100)*(k/p.hor);
+  return rows[k-1].noi / yk;
+}
+
+let invSel = new Set(["flat","gradual","custom"]);
+function renderInvest(){
+  const {p, used, bad} = readGroup("invest");
+  const al = $("#invAlert");
+  al.hidden = !bad.length;
+  if (bad.length) al.textContent = `入力を確認してください（${bad.map(f=>f.label).join("・")}）。該当項目は例の値で計算しています。`;
+  const H = p.hor, N = Math.max(H, 10);
+  const sims = {}; SCEN.forEach(s => sims[s] = simInvest(p, s, N));
+  const base = sims.flat[0];
+  const cfM = base.cf/12;
+  const be = breakEvenRate(p);
+
+  /* --- 状態カード --- */
+  let tone, head, beLabel, beVal, beSub;
+  if (be.type === "nodebt") { tone="green"; head="ローン返済はありません"; }
+  else if (cfM < 0) {
+    tone = "red"; head = `いま毎月 ${man(-cfM,2)} の持ち出しです`;
+    beLabel = "収支がトントンになる金利";
+    beVal = be.type==="zero" ? "0%でも赤字" : pct(be.r);
+    beSub = be.type==="zero" ? "金利がゼロでも、元金の返済だけで家賃を上回ります" : `今 ${pct(p.rate)} → ここまで下がれば収支ゼロ`;
+  } else {
+    const margin = be.type==="rate" ? be.r - p.rate : 99;
+    tone = margin < 0.5 ? "amber" : "green";
+    head = tone==="amber" ? `黒字ですが、金利が少し上がると赤字です` : `いまは毎月 ${man(cfM,2)} の黒字です`;
+    beLabel = "赤字に転じる金利";
+    beVal = be.type==="over" ? "30%超" : pct(be.r);
+    beSub = be.type==="over" ? "" : `今 ${pct(p.rate)} から あと+${pct(margin)}`;
+  }
+  // 緩やかに上昇した場合、何年目に赤字になるか
+  let turn = "";
+  if (cfM >= 0 && be.type!=="nodebt"){
+    const g = sims.gradual.findIndex(r => r.cf < 0);
+    turn = g >= 0 ? `年+0.25%ずつ上がると、${g+1}年目に赤字になります。` : `年+0.25%ずつ上がっても（上限+${pct(p.gcap)}）、${N}年間は黒字の計算です。`;
+  }
+  const prinM = base.prin/12;
+  $("#invStatus").innerHTML = `
+    <div class="status ${tone}">
+      <p class="q">毎月の家賃で、返済と経費をまかなえる？</p>
+      <div class="h">${tone==="red"?"🔴":tone==="amber"?"🟡":"🟢"} ${head}</div>
+      <div class="kpis">
+        <div class="kpi"><div class="k">毎月の収支（1年目の平均）</div><div class="v ${cls(cfM)}">${signed(cfM,2)}</div><div class="s">年間 ${signed(base.cf)}</div></div>
+        ${beLabel?`<div class="kpi"><div class="k">${beLabel}</div><div class="v">${beVal}</div><div class="s">${beSub}</div></div>`:""}
+        ${be.type!=="nodebt"?`<div class="kpi"><div class="k">返済のうち元金（1年目の平均）</div><div class="v">${man(prinM,2)}</div><div class="s">ローン残高が減る分＝実質的な積立</div></div>`:""}
+      </div>
+      ${turn?`<p class="note">${turn}</p>`:""}
+      ${used.length?`<details class="list-ex"><summary>例の値で計算している項目（${used.length}）</summary><ul>${used.map(f=>`<li>${esc(f.label)}：${f.type==="select"?"":f.def}${f.unit||""}</li>`).join("")}</ul><p style="margin:6px 0 0">統計的な平均値ではありません。「詳しく入力する」でご自身の条件に変えられます。</p></details>`:""}
+    </div>`;
+
+  /* --- 売却比較 --- */
+  const scen = $("#invScen").value;
+  $("#invScen").options[2].textContent = `自分で設定（年+${pct(p.cst)}・上限+${pct(p.ccap)}）`;
+  $("#invScen").options[0].textContent = `緩やかに上昇（年+0.25%・上限+${pct(p.gcap)}）`;
+  const rows = sims[scen];
+  const hasBuy = p.bp!=null && p.bl!=null && p.bc!=null && p.bcf!=null;
+  const initEq = hasBuy ? p.bp + p.bc - p.bl : 0;
+  let saleHTML = "";
+  if (p.p0 == null) {
+    saleHTML = `<div class="empty">売値を入れると、今・5年後・${H}年後に売った場合に手元に残るお金を比べられます。</div>`;
+    $("#invYearWrap").hidden = true;
+  } else if (p.sm==="yield" && noiAt(p,1) <= 0) {
+    saleHTML = `<div class="empty">手元に残る家賃がマイナスのため、利回りから売値を計算できません。「今の売値から毎年増減させる」を選んでください。</div>`;
+    $("#invYearWrap").hidden = true;
+  } else {
+    $("#invYearWrap").hidden = false;
+    const now = p.p0*(1-p.sc/100) - p.debt;
+    const yrs = [{k:0, sale:p.p0, bal:p.debt, net:now, cum:0, fin:now}];
+    for (let k=1;k<=H;k++){ const s = salePrice(p, rows, k), r = rows[k-1]; const net = s*(1-p.sc/100) - r.bal; yrs.push({k, sale:s, bal:r.bal, net, cum:r.cum, fin: net + r.cum}); }
+    const best = yrs.reduce((a,b) => b.fin > a.fin + 1e-9 ? b : a, yrs[0]);
+    const mids = [...new Set([0, Math.min(5,H), H])];
+    const card = y => {
+      const d = y.fin - now;
+      const title = y.k===0 ? "今売ったら" : `${y.k}年後に売ったら`;
+      const tot = hasBuy ? `<div><span>購入時からの損益</span><b class="${cls(p.bcf + y.fin - initEq)}">${signed(p.bcf + y.fin - initEq)}</b></div>` : "";
+      return `<div class="sc ${y===best?"best":""}"><h4>${title}${y===best?'<span class="tag">この条件で最多</span>':""}</h4>
+        <div class="k">最終的に手元に残る額</div><div class="big ${cls(y.fin)}">${man(y.fin)}</div>
+        <div class="d ${cls(d)}">${y.k===0 ? "比較の基準" : (Math.abs(d)<0.5 ? "今売るのと同じ" : `今売るより ${man(Math.abs(d))} ${d>0?"多い":"少ない"}`)}</div>
+        <div class="br">
+          ${y.k===0
+            ? `<div><span>売値</span><span>${man(y.sale)}</span></div><div><span>売る費用</span><span>${man(-y.sale*p.sc/100)}</span></div><div><span>ローン残高</span><span>${man(-y.bal)}</span></div>`
+            : `<div><span>売却後のお金</span><span>${man(y.net)}</span></div><div><span>今日からの収支合計</span><span>${signed(y.cum)}</span></div>`}
+          ${tot}
+        </div></div>`;
+    };
+    saleHTML = `<div class="cards">${mids.map(k=>card(yrs[k])).join("")}</div>
+      <p class="note">${p.sm==="price" ? `売値は毎年${p.pc>=0?"+":MINUS}${pct(Math.abs(p.pc))}変化` : `売るときの利回りが${H}年で+${pct(p.yr)}上昇`}、金利は「${scenName(scen,p,true)}」の想定です。
+      ${best.k===0 ? "この条件では、今売るのが最も多く残る計算です。" : `この条件で最も多く残るのは <b>${best.k}年後</b>（${man(best.fin)}、今売るより${man(best.fin-now)}多い）です。`}売り時を予測・保証するものではありません。</p>`;
+
+    /* 年ごとの表 */
+    $("#invYearTbl").innerHTML = `<thead><tr><th>売る時期</th><th>売値</th><th>ローン残高</th><th>売却後のお金</th><th>今日からの収支合計</th><th>最終手元額</th><th>今売る場合との差</th>${hasBuy?"<th>購入時からの損益</th>":""}</tr></thead><tbody>` +
+      yrs.map(y => `<tr class="${y===best?"hl":""}"><td>${y.k===0?"今":y.k+"年後"}</td><td>${man(y.sale)}</td><td>${man(y.bal)}</td><td>${man(y.net)}</td><td class="${cls(y.cum)}">${signed(y.cum)}</td><td class="${cls(y.fin)}"><b>${man(y.fin)}</b></td><td class="${cls(y.fin-now)}">${y.k===0?"—":signed(y.fin-now)}</td>${hasBuy?`<td class="${cls(p.bcf+y.fin-initEq)}">${signed(p.bcf+y.fin-initEq)}</td>`:""}</tr>`).join("") + "</tbody>";
+
+    /* 利回り感応度 */
+    const noiH = rows[H-1].noi, y0 = noiAt(p,1)/p.p0;
+    if (y0 > 0) {
+      $("#invYieldLead").textContent = `${H}年後に売る場合。今の利回り（1年目の手元に残る家賃 ÷ 今の売値 ＝ ${pct(y0*100)}）から、売るときの利回りが上がると売値はどう変わるか。上の売値の想定とは別の比較です。`;
+      $("#invYieldTbl").innerHTML = `<thead><tr><th>利回りの上昇</th><th>売るときの利回り</th><th>売値</th><th>最終手元額</th><th>今売る場合との差</th></tr></thead><tbody>` +
+        [0,0.25,0.5,1].map(u => { const yy=y0+u/100, s=noiH/yy, fin=s*(1-p.sc/100)-rows[H-1].bal+rows[H-1].cum;
+          return `<tr><td>+${pct(u)}</td><td>${pct(yy*100)}</td><td>${man(s)}</td><td class="${cls(fin)}">${man(fin)}</td><td class="${cls(fin-now)}">${signed(fin-now)}</td></tr>`; }).join("") + "</tbody>";
+    } else {
+      $("#invYieldLead").textContent = "手元に残る家賃がマイナスのため、利回りでの比較は表示できません。";
+      $("#invYieldTbl").innerHTML = "";
+    }
+  }
+  $("#invSale").innerHTML = saleHTML;
+
+  /* --- シナリオ比較表 --- */
+  const cols = [...new Set([1, Math.min(5,N), Math.min(10,N), H])].sort((a,b)=>a-b);
+  $("#invScenTbl").innerHTML = `<thead><tr><th>金利の上がり方</th>${cols.map(c=>`<th>${c}年目 月の収支</th>`).join("")}<th>${H}年間の収支合計</th></tr></thead><tbody>` +
+    SCEN.map(s => `<tr><td><span class="sw" style="background:var(--s-${s==="flat"?"flat":s==="gradual"?"grad":"cust"})"></span>${esc(scenName(s,p))}</td>${cols.map(c=>{const r=sims[s][c-1]; return `<td class="${cls(r.cf)}">${signed(r.cf/12,2)}<br><small style="color:var(--muted)">金利 ${pct(r.r)}</small></td>`;}).join("")}<td class="${cls(sims[s][H-1].cum)}">${signed(sims[s][H-1].cum)}</td></tr>`).join("") + "</tbody>";
+
+  /* --- グラフ --- */
+  const colors = {flat:"var(--s-flat)", gradual:"var(--s-grad)", custom:"var(--s-cust)"};
+  $("#invChips").innerHTML = SCEN.map(s => `<button class="chip" type="button" data-inv-chip="${s}" aria-pressed="${invSel.has(s)}"><i style="background:${colors[s]}"></i>${esc(scenName(s,p,true))}</button>`).join("");
+  const series = SCEN.filter(s=>invSel.has(s)).map(s => ({name:scenName(s,p,true), color:colors[s], dash:s==="custom", values: sims[s].slice(0,H).map(r=>r.cf/12)}));
+  $("#invChart").innerHTML = lineChart(series, Array.from({length:H},(_,i)=>i+1), {unit:"万円", shadeNeg:true, xl:k=>`${k}年目`, aria:"各年の毎月の収支"});
+  const rentTxt = p.rg===0 ? "家賃は変わらない想定です。" : `家賃は最初の${p.rf}年間据え置き、その後は毎年${p.rg>0?"+":""}${pct(p.rg)}（今の家賃の±${pct(p.rc)}で止まる）。`;
+  const paidOff = p.years < H ? `${p.years}年目でローンを完済し、その後は返済がなくなります。` : "";
+  $("#invChartNote").textContent = `1年目は今の金利、2年目から上昇する想定です。${rentTxt}${p.mg>0?`管理費等は毎年+${pct(p.mg)}。`:""}${paidOff}`;
+
+  /* --- 計算式 --- */
+  $("#invFormula").innerHTML = `
+    <div>手元に残る家賃（年間） <b>${man(base.noi)}</b> ＝ 家賃 ${man(p.rent,2)}×12×（1−空室 ${pct(p.vac)}）− 管理費等 ${man(p.mnt,2)}×12 − 固定資産税等 ${man(p.tax)}</div>
+    <div>毎月の収支 <b class="${cls(cfM)}">${signed(cfM,2)}</b> ＝ 手元に残る家賃 ÷ 12 − 月々のローン返済 ${man(base.paid/12,2)}（うち元金 ${man(base.prin/12,2)}・利息 ${man(base.intr/12,2)}）</div>
+    <div style="color:var(--muted);font-size:12.5px">投資用ローンは年1回、その年の金利・残高・残り期間で返済額を計算し直す想定です（住宅ローンの5年・125%ルールは使いません）。</div>`;
+  writeHash("invest");
+}
+
+/* ---------- 住宅ローン ---------- */
+function simHome(P, years, rateFn, rule){
+  const N = years*12; let bal = P, unpaid = 0, total = 0, maxM = 0;
+  let m = pmt(P, rateFn(1), N);
+  const monthly = [];
+  for (let k=1; k<=years; k++){
+    const r = rateFn(k), rem = N - (k-1)*12;
+    if (k>1){
+      if (!rule) m = pmt(bal, r, rem);
+      else if ((k-1)%5===0){ const nm = pmt(bal+unpaid, r, rem); m = Math.min(nm, m*1.25); }
+    }
+    let yearPaid = 0;
+    for (let j=0;j<12;j++){
+      const it = bal*r/1200;
+      let pay = m, last = (k===years && j===11);
+      if (pay < it){ unpaid += it - pay; }
+      else {
+        let x = pay - it;
+        const u = Math.min(unpaid, x); unpaid -= u; x -= u;
+        if (x > bal){ pay -= (x-bal); x = bal; }
+        bal -= x;
+      }
+      yearPaid += pay;
+    }
+    total += yearPaid; monthly.push(yearPaid/12); maxM = Math.max(maxM, yearPaid/12);
+  }
+  const lump = bal + unpaid;
+  return {monthly, total: total + lump, lump, maxM};
+}
+let homeSel = new Set(["flat","gradual","custom","fixed"]);
+function renderHome(){
+  const {p, bad} = readGroup("home");
+  const al = $("#homeAlert"); al.hidden = !bad.length;
+  if (bad.length) al.textContent = `入力を確認してください（${bad.map(f=>f.label).join("・")}）。該当項目は例の値で計算しています。`;
+  const rule = $("#hRule").checked;
+  const fn = s => k => rateAt(p.hv, s, k, p.hgcap, p.hcst, p.hccap);
+  const V = {}; SCEN.forEach(s => V[s] = simHome(p.hp, p.hy, fn(s), rule));
+  const fm = pmt(p.hp, p.hf, p.hy*12), fTot = fm*p.hy*12;
+  const names = {flat:"変動・今のまま", gradual:`変動・緩やかに上昇（年+0.25%・上限+${pct(p.hgcap)}）`, custom:`変動・自分で設定（年+${pct(p.hcst)}・上限+${pct(p.hccap)}）`, fixed:`全期間固定（${pct(p.hf)}）`};
+  const short = {flat:"変動・今のまま", gradual:"変動・緩やかに上昇", custom:"変動・自分で設定", fixed:"全期間固定"};
+
+  // 総返済額が固定と同じになる毎年の上昇幅（上限は「緩やかに上昇」の上限）
+  const totAt = st => simHome(p.hp, p.hy, k => p.hv + Math.min(st*(k-1), p.hgcap), rule).total;
+  let beTxt;
+  if (V.flat.total >= fTot) beTxt = "変動が今のままでも、固定の方が総返済額は少なくなります。";
+  else if (totAt(20) <= fTot) beTxt = `変動金利が翌年に上限（+${pct(p.hgcap)}）まで上がっても、総返済額は変動の方が少ない計算です。`;
+  else { let lo=0, hi=20; for(let i=0;i<60;i++){const mid=(lo+hi)/2; totAt(mid) > fTot ? hi=mid : lo=mid;} beTxt = `変動金利が <b>毎年+${pct((lo+hi)/2)}</b> 以上のペースで上がる（上限+${pct(p.hgcap)}）と、固定の方が総返済額は少なくなります。`; }
+
+  const diffNow = fm - V.flat.monthly[0];
+  $("#homeStatus").innerHTML = `
+    <div class="status green" style="background:var(--surface);border-color:var(--line)">
+      <p class="q">はじめの毎月の返済額</p>
+      <div class="kpis" style="margin-top:6px">
+        <div class="kpi" style="background:var(--surface2)"><div class="k">変動（${pct(p.hv)}）</div><div class="v">${man(V.flat.monthly[0],2)}</div></div>
+        <div class="kpi" style="background:var(--surface2)"><div class="k">全期間固定（${pct(p.hf)}）</div><div class="v">${man(fm,2)}</div><div class="s">変動より月 ${man(Math.abs(diffNow),2)} ${diffNow>=0?"高い":"安い"}</div></div>
+      </div>
+      <p class="note" style="font-size:13.5px;color:var(--ink)">${beTxt}</p>
+    </div>`;
+
+  const cols = [...new Set([1, Math.min(5,p.hy), Math.min(6,p.hy), Math.min(10,p.hy)])].sort((a,b)=>a-b);
+  const rowsM = [...SCEN.map(s => ({s, m:V[s].monthly, max:V[s].maxM})), {s:"fixed", m:Array(p.hy).fill(fm), max:fm}];
+  const sw = s => `<span class="sw" style="background:var(--s-${s==="flat"?"flat":s==="gradual"?"grad":s==="custom"?"cust":"fix"})"></span>`;
+  $("#homeMonTbl").innerHTML = `<thead><tr><th>金利の上がり方</th>${cols.map(c=>`<th>${c}年目</th>`).join("")}<th>最大の月額</th></tr></thead><tbody>` +
+    rowsM.map(r => `<tr><td>${sw(r.s)}${esc(names[r.s])}</td>${cols.map(c=>`<td>${man(r.m[c-1],2)}</td>`).join("")}<td><b>${man(r.max,2)}</b></td></tr>`).join("") + "</tbody>";
+  $("#homeTotTbl").innerHTML = `<thead><tr><th>金利の上がり方</th><th>総返済額</th><th>うち利息</th><th>固定との差</th>${rule?"<th>最後にまとめて払う額</th>":""}</tr></thead><tbody>` +
+    SCEN.map(s => { const t=V[s].total, d=t-fTot; return `<tr><td>${sw(s)}${esc(names[s])}</td><td>${man(t)}</td><td>${man(t-p.hp)}</td><td class="${d>0?"neg":"pos"}">${signed(d)}</td>${rule?`<td>${V[s].lump<0.5?"なし":man(V[s].lump)}</td>`:""}</tr>`; }).join("") +
+    `<tr><td>${sw("fixed")}${esc(names.fixed)}</td><td>${man(fTot)}</td><td>${man(fTot-p.hp)}</td><td>—</td>${rule?"<td>なし</td>":""}</tr></tbody>`;
+  const anyLump = rule && SCEN.some(s => V[s].lump >= 0.5);
+  $("#homeRuleNote").innerHTML = rule
+    ? `5年・125%ルールあり：返済額は6年目・11年目…に見直し、増額は前の1.25倍まで。${anyLump?"<b>払い切れなかった利息と元金は、最後にまとめて払う計算です（総返済額に含めています）。</b>":"この条件では、最後にまとめて払う額は発生しません。"}適用は金融機関によって異なります。`
+    : "5年・125%ルールなし：毎年、その年の金利と残高で返済額を計算し直す想定です。";
+
+  const colors = {flat:"var(--s-flat)", gradual:"var(--s-grad)", custom:"var(--s-cust)", fixed:"var(--s-fix)"};
+  $("#homeChips").innerHTML = ["flat","gradual","custom","fixed"].map(s => `<button class="chip" type="button" data-home-chip="${s}" aria-pressed="${homeSel.has(s)}"><i style="background:${colors[s]}"></i>${short[s]}</button>`).join("");
+  const ser = ["flat","gradual","custom","fixed"].filter(s=>homeSel.has(s)).map(s => ({name:short[s], color:colors[s], dash:s==="custom", step:true, values: s==="fixed" ? Array(p.hy).fill(fm) : V[s].monthly}));
+  $("#homeChart").innerHTML = lineChart(ser, Array.from({length:p.hy},(_,i)=>i+1), {unit:"万円", xl:k=>`${k}年目`, aria:"各年の毎月の返済額", zeroBase:true});
+  writeHash("home");
+}
+
+/* ---------- SVG折れ線グラフ ---------- */
+function niceStep(range, n){ const raw = range/n, mag = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw/mag; return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*mag; }
+function lineChart(series, xs, o){
+  if (!series.length) return `<div class="empty">表示する線を選んでください。</div>`;
+  const W=680, Hh=290, L=56, R=14, T=26, B=34;
+  let all = series.flatMap(s=>s.values).filter(isFinite);
+  let mn = Math.min(...all), mx = Math.max(...all);
+  if (o.shadeNeg || o.zeroBase){ mn = Math.min(mn, 0); mx = Math.max(mx, 0); }
+  if (o.zeroBase) mn = 0;
+  if (mx - mn < 1e-6){ mx += 1; mn -= o.zeroBase?0:1; }
+  const st = niceStep(mx-mn, 5); mn = Math.floor(mn/st)*st; mx = Math.ceil(mx/st)*st;
+  const X = i => L + (xs.length===1 ? (W-L-R)/2 : i*(W-L-R)/(xs.length-1));
+  const Y = v => T + (mx-v)*(Hh-T-B)/(mx-mn);
+  let g = "";
+  if (o.shadeNeg && mn < 0) g += `<rect x="${L}" y="${Y(0)}" width="${W-L-R}" height="${Y(mn)-Y(0)}" fill="var(--red)" opacity=".06"/>`;
+  for (let v=mn; v<=mx+1e-9; v+=st){ const y=Y(v); const lab = (Math.round(v*100)/100).toLocaleString("ja-JP").replace("-",MINUS);
+    g += `<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)" ${Math.abs(v)<1e-9?'stroke-width="1.6" stroke="var(--muted)" opacity=".6"':""}/><text x="${L-8}" y="${y+4}" text-anchor="end">${lab}</text>`; }
+  const every = Math.ceil(xs.length/10);
+  xs.forEach((x,i)=>{ if (i%every===0 || i===xs.length-1) g += `<text x="${X(i)}" y="${Hh-12}" text-anchor="middle">${x}</text>`; });
+  g += `<text x="${L-8}" y="11" text-anchor="end" style="font-size:10px">（${o.unit}）</text><text x="${W-R}" y="${Hh-0}" text-anchor="end" style="font-size:10px">年目</text>`;
+  series.forEach(s => {
+    const pts = s.values.map((v,i)=>[X(i),Y(v)]);
+    const d = pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+    g += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linejoin="round" ${s.dash?'stroke-dasharray="6 4"':""}/>`;
+    if (xs.length <= 15) pts.forEach((p,i)=>{ g += `<circle cx="${p[0]}" cy="${p[1]}" r="3.2" fill="${s.color}"><title>${esc(s.name)} ${o.xl(xs[i])}：${man(s.values[i],2)}</title></circle>`; });
+  });
+  return `<svg class="chart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${esc(o.aria)}">${g}</svg>`;
+}
+
+/* ---------- 共有リンク（#以降に保存。サーバーに送られない） ---------- */
+let curTab = "invest", hashTimer;
+function writeHash(tab){
+  clearTimeout(hashTimer);
+  hashTimer = setTimeout(() => {
+    if (tab !== curTab) return;
+    const parts = [tab==="invest"?"t=i":"t=h"];
+    GROUPS[tab].forEach(g => F[g].forEach(f => {
+      const el = document.getElementById(f.id); if (!el) return;
+      const v = f.type==="select" ? el.value : el.value.trim();
+      const dflt = f.type==="select" ? f.def : (f.pre ? String(f.def) : "");
+      if (v !== dflt && v !== "") parts.push(f.k+"="+encodeURIComponent(f.type==="select"?v:(isNaN(parseNum(v))?v:parseNum(v))));
+    }));
+    if (tab==="invest" && $("#invScen").value!=="gradual") parts.push("sc="+$("#invScen").value);
+    if (tab==="home" && !$("#hRule").checked) parts.push("rule=0");
+    history.replaceState(null, "", "#"+parts.join("&"));
+  }, 300);
+}
+function readHash(){
+  const h = location.hash.replace(/^#/,""); if (!h) return;
+  const q = new URLSearchParams(h);
+  const tab = q.get("t")==="h" ? "home" : "invest";
+  GROUPS[tab].forEach(g => F[g].forEach(f => { if (q.has(f.k)) document.getElementById(f.id).value = q.get(f.k); }));
+  if (tab==="invest" && q.has("sc")) $("#invScen").value = q.get("sc");
+  if (tab==="home" && q.get("rule")==="0") $("#hRule").checked = false;
+  if (tab==="invest" && (q.has("y")||q.has("x")||q.has("v")||q.has("bp"))) $("#invMore").open = true;
+  setTab(tab, false);
+}
+async function share(tab){
+  const url = location.href;
+  const msg = document.querySelector(`[data-share-msg="${tab}"]`);
+  try { await navigator.clipboard.writeText(url); msg.textContent = "リンクをコピーしました"; }
+  catch(e){ msg.innerHTML = `<input readonly value="${esc(url)}" aria-label="共有用のリンク" onfocus="this.select()">`; }
+  setTimeout(()=>{ if (msg.textContent) msg.textContent=""; }, 3000);
+}
+
+/* ---------- タブ ---------- */
+const HERO = {
+  invest: ["このワンルーム、<br>持ち続けるといくら残る？", "4つの数字で毎月の収支が分かります。売値を入れると、今・5年後・10年後に売った場合を比べられます。"],
+  home: ["変動と固定、<br>金利が上がったらどう違う？", "借入額・期間・2つの金利で、毎月の返済と総返済額を比べます。"],
+};
+function setTab(tab, render=true){
+  curTab = tab;
+  ["invest","home"].forEach(t => {
+    const on = t===tab;
+    $("#tab-"+t).setAttribute("aria-selected", on); $("#tab-"+t).tabIndex = on ? 0 : -1;
+    $("#panel-"+t).hidden = !on;
+  });
+  $("#heroTitle").innerHTML = HERO[tab][0]; $("#heroLead").textContent = HERO[tab][1];
+  if (render) (tab==="invest" ? renderInvest : renderHome)();
+}
+
+/* ---------- イベント ---------- */
+buildFields();
+let rt;
+const rerender = () => { clearTimeout(rt); rt = setTimeout(() => (curTab==="invest"?renderInvest:renderHome)(), 120); };
+document.addEventListener("input", e => { if (e.target.matches("input,select")) rerender(); });
+document.addEventListener("focusout", e => { const el=e.target; if (el.matches && el.matches(".inbox input") && el.value.trim()!=="") { const v=parseNum(el.value); if(!isNaN(v)) el.value=String(v); } });
+document.addEventListener("change", e => { if (e.target.matches("select,input[type=checkbox]")) rerender(); });
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.tip){ const p = document.getElementById(t.dataset.tip); const on = p.hidden; p.hidden = !on; t.setAttribute("aria-expanded", on); }
+  else if (t.dataset.sign){ const el = document.getElementById(t.dataset.sign); const v = parseNum(el.value); if (!isNaN(v)) el.value = String(-v); else el.value = el.value.startsWith("-") ? el.value.slice(1) : "-"+el.value; el.focus(); rerender(); }
+  else if (t.dataset.scroll){ document.getElementById(t.dataset.scroll).scrollIntoView({behavior:"smooth", block:"start"}); }
+  else if (t.dataset.share){ share(t.dataset.share); }
+  else if (t.dataset.invChip){ const s=t.dataset.invChip; invSel.has(s)?invSel.delete(s):invSel.add(s); renderInvest(); }
+  else if (t.dataset.homeChip){ const s=t.dataset.homeChip; homeSel.has(s)?homeSel.delete(s):homeSel.add(s); renderHome(); }
+  else if (t.getAttribute("role")==="tab"){ setTab(t.id==="tab-home"?"home":"invest"); }
+});
+$(".tabs").addEventListener("keydown", e => {
+  if (e.key!=="ArrowLeft" && e.key!=="ArrowRight") return;
+  const next = curTab==="invest" ? "home" : "invest"; setTab(next); $("#tab-"+next).focus();
+});
+readHash();
+renderInvest(); renderHome();
+setTab(curTab);
+})();
+</script>
+</body>
+</html>
